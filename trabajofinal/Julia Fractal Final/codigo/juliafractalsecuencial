@@ -5,7 +5,7 @@
 #include <highgui.h>
 #include <cv.h>
 
-#define DIM 40
+#define DIM 200
 using namespace std;
 using namespace cv;
 
@@ -52,7 +52,7 @@ int julia(int x, int y)
 	return 1;
 }
 
-void kernel(unsigned char *ptr)
+void juliaCPU(unsigned char *ptr)
 {
 	for (int i = 0; i < DIM; ++i)
 	{
@@ -60,20 +60,19 @@ void kernel(unsigned char *ptr)
 		{
 			int offset = j + i*DIM;
 			int juliaValue = julia (j, i);
-			cout <<offset << ": " <<juliaValue <<endl;
+			//cout <<offset << ": " <<juliaValue <<endl;
 			ptr[offset] = 255 * juliaValue;
-			/*
-			ptr[offset*4 + 0] = 255 * juliaValue;
-			ptr[offset*4 + 1] = 0;
-			ptr[offset*4 + 2] = 0;
-			ptr[offset*4 + 3] = 255;*/
 		}
 	}
 }
 
 int main()
 {
+	// Variables
 	unsigned char *imageInput;
+	clock_t inicio, final;
+	double tiempo;
+	double cont = 0, promedio = 0;
 
 	Mat image (DIM, DIM, CV_8UC1, Scalar(255));
 
@@ -92,10 +91,16 @@ int main()
 
 	imageInput = image.data;
 
-	cout << "El alto y ancho de la imagen tiene respectivamente " << width << " pixels por " << height << " pixels\n";
-	
-	kernel(imageInput);
-	
+	for (int i = 0; i < 20; ++i)
+	{
+		inicio = clock();
+		juliaCPU(imageInput);
+		final = clock();	
+		tiempo = (((double) (final - inicio)) / CLOCKS_PER_SEC );
+		cont = cont + tiempo;
+	}
+	promedio = cont / 20;
+	cout <<"El tiempo secuencial promedio para una dimension de " << DIM << "x" <<DIM <<" es de: " <<promedio <<" segundos.\n";
 	Mat imageFractal;
 	imageFractal.create(DIM,DIM,CV_8UC1);
   	imageFractal.data = imageInput;
